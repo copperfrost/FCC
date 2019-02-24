@@ -19,6 +19,10 @@ unsigned int get_defvector_length(const int n) {
 }
 
 void print_vector(const bool* vector, const unsigned int size) {
+	if (!vector) {
+		printf("\nFatal error: attempted to refer to a null vector.\n");
+		exit(EXIT_FAILURE);
+	}
 	if (!size) {
 		printf("\nFatal error: attempted to refer to a null-size vector.\n");
 		exit(EXIT_FAILURE);
@@ -28,6 +32,10 @@ void print_vector(const bool* vector, const unsigned int size) {
 }
 
 bool can_increment_vector(const bool* vector, const unsigned int size) {
+	if (!vector) {
+		printf("\nFatal error: attempted to refer to a null vector.\n");
+		exit(EXIT_FAILURE);
+	}
 	if (!size) {
 		printf("\nFatal error: attempted to refer to a null-size vector.\n");
 		exit(EXIT_FAILURE);
@@ -39,6 +47,10 @@ bool can_increment_vector(const bool* vector, const unsigned int size) {
 }
 
 void increment_vector(bool* vector, const unsigned int size) {
+	if (!vector) {
+		printf("\nFatal error: attempted to refer to a null vector.\n");
+		exit(EXIT_FAILURE);
+	}
 	if (!size) {
 		printf("\nFatal error: attempted to refer to a null-size vector.\n");
 		exit(EXIT_FAILURE);
@@ -58,6 +70,10 @@ void increment_vector(bool* vector, const unsigned int size) {
 }
 
 unsigned int bin_to_int(const bool* bin, const unsigned int size) {
+	if (!bin) {
+		printf("\nFatal error: attempted to refer to a null vector.\n");
+		exit(EXIT_FAILURE);
+	}
 	if (!size) {
 		printf("\nFatal error: attempted to refer to a null-size vector.\n");
 		exit(EXIT_FAILURE);
@@ -69,6 +85,10 @@ unsigned int bin_to_int(const bool* bin, const unsigned int size) {
 }
 
 bool get_scalar_product(const bool* a, const bool* x, const unsigned int size) {
+	if (!a || !x) {
+		printf("\nFatal error: attempted to refer to a null vector.\n");
+		exit(EXIT_FAILURE);
+	}
 	if (!size) {
 		printf("\nFatal error: attempted to refer to a null-size vector.\n");
 		exit(EXIT_FAILURE);
@@ -80,6 +100,10 @@ bool get_scalar_product(const bool* a, const bool* x, const unsigned int size) {
 }
 
 bool* bin_parse(char* str, unsigned int expected_length) {
+	if (!str) {
+		printf("\nFatal error: attempted to refer to an empty string.\n");
+		exit(EXIT_FAILURE);
+	}
 	unsigned int length;
 	for (length = 0; str[length] != '\0'; length++)
 		if (str[length] != '1' && str[length] != '0') {
@@ -109,14 +133,14 @@ int main(int argc, char* argv[]) {
 			"\nMake sure the definition vector matches the specified number of function arguments.\n"
 			"-------------------------------------------\n\n");
 		printf("Entering manual input mode.\nInput the number of arguments: ");
-		scanf("%s", buffer);
+		scanf_s("%999s", buffer, MAX_INPUT_LENGTH);
 		if(atoi(buffer) < 1) {
 			printf("\nFatal error: failed to parse input.\n");
 			exit(EXIT_FAILURE);
 		}
 		N = atoi(buffer);
 		printf("Input func definition vector: ");
-		scanf("%s", buffer);
+		scanf_s("%999s", buffer, MAX_INPUT_LENGTH);
 		funcdef = bin_parse(buffer, N);
 	}
 	else {
@@ -152,6 +176,9 @@ int main(int argc, char* argv[]) {
 		if (can_increment_vector(ct, N))
 			increment_vector(ct, N);
 	}
+	printf("\nPress Enter to quit.\n\n");
+	getchar();
+	getchar();
 
 	free(ct);
 	free(funcdef);
