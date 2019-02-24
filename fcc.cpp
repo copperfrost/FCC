@@ -96,10 +96,6 @@ bool* bin_parse(char* str, unsigned int expected_length) {
 	return bin_arr;
 }
 
-void get_input() {
-
-}
-
 int main(int argc, char* argv[]) {
 	char* buffer = (char*)calloc(MAX_INPUT_LENGTH, sizeof(char));
 	if (argc != 3) {
