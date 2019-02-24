@@ -1,6 +1,11 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include <stdio.h>
 #include <stdlib.h>
+
+#define MAX_INPUT_LENGTH 1000
+
+bool* funcdef;
+unsigned int N;
 
 unsigned int get_defvector_length(const int n) {
 	if (n < 0) {
@@ -91,7 +96,12 @@ bool* bin_parse(char* str, unsigned int expected_length) {
 	return bin_arr;
 }
 
+void get_input() {
+
+}
+
 int main(int argc, char* argv[]) {
+	char* buffer = (char*)calloc(MAX_INPUT_LENGTH, sizeof(char));
 	if (argc != 3) {
 		printf("\n\n-------------------------------------------\n"
 			"Calculates Fourier coefficients for a function with N arguments defined by its values vector.\n"
@@ -102,16 +112,21 @@ int main(int argc, char* argv[]) {
 			"\nFCC 3 01101001\n"
 			"\nMake sure the definition vector matches the specified number of function arguments.\n"
 			"-------------------------------------------\n\n");
-		getchar();
-		return 0;
+		printf("Entering manual input mode.\nInput the number of arguments: ");
+		scanf("%s", buffer);
+		if(atoi(buffer) < 1) {
+			printf("\nFatal error: failed to parse input.\n");
+			exit(EXIT_FAILURE);
+		}
+		N = atoi(buffer);
+		printf("Input func definition vector: ");
+		scanf("%s", buffer);
+		funcdef = bin_parse(buffer, N);
 	}
-
-	unsigned int N = atoi(argv[1]);
-	bool* funcdef = bin_parse(argv[2], N);
-	//	bool* funcdef = (bool*)calloc(get_defvector_length(N), sizeof(bool));
-	/*	for (unsigned int i = 0; i < get_defvector_length(N); i++) {
-			funcdef[i] = inputdef[i];
-		}*/
+	else {
+		N = atoi(argv[1]);
+		funcdef = bin_parse(argv[2], N);
+	}
 	printf("\n\nGot func definition vector from input: ");
 	print_vector(funcdef, get_defvector_length(N));
 	printf("\n\n");
