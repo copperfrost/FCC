@@ -1,6 +1,11 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include <stdio.h>
 #include <stdlib.h>
+
+#define MAX_INPUT_LENGTH 1000
+
+bool* funcdef;
+unsigned int N;
 
 unsigned int get_defvector_length(const int n) {
 	if (n < 0) {
@@ -14,6 +19,10 @@ unsigned int get_defvector_length(const int n) {
 }
 
 void print_vector(const bool* vector, const unsigned int size) {
+	if (!vector) {
+		printf("\nFatal error: attempted to refer to a null vector.\n");
+		exit(EXIT_FAILURE);
+	}
 	if (!size) {
 		printf("\nFatal error: attempted to refer to a null-size vector.\n");
 		exit(EXIT_FAILURE);
@@ -23,6 +32,10 @@ void print_vector(const bool* vector, const unsigned int size) {
 }
 
 bool can_increment_vector(const bool* vector, const unsigned int size) {
+	if (!vector) {
+		printf("\nFatal error: attempted to refer to a null vector.\n");
+		exit(EXIT_FAILURE);
+	}
 	if (!size) {
 		printf("\nFatal error: attempted to refer to a null-size vector.\n");
 		exit(EXIT_FAILURE);
@@ -34,6 +47,10 @@ bool can_increment_vector(const bool* vector, const unsigned int size) {
 }
 
 void increment_vector(bool* vector, const unsigned int size) {
+	if (!vector) {
+		printf("\nFatal error: attempted to refer to a null vector.\n");
+		exit(EXIT_FAILURE);
+	}
 	if (!size) {
 		printf("\nFatal error: attempted to refer to a null-size vector.\n");
 		exit(EXIT_FAILURE);
@@ -53,6 +70,10 @@ void increment_vector(bool* vector, const unsigned int size) {
 }
 
 unsigned int bin_to_int(const bool* bin, const unsigned int size) {
+	if (!bin) {
+		printf("\nFatal error: attempted to refer to a null vector.\n");
+		exit(EXIT_FAILURE);
+	}
 	if (!size) {
 		printf("\nFatal error: attempted to refer to a null-size vector.\n");
 		exit(EXIT_FAILURE);
@@ -64,6 +85,10 @@ unsigned int bin_to_int(const bool* bin, const unsigned int size) {
 }
 
 bool get_scalar_product(const bool* a, const bool* x, const unsigned int size) {
+	if (!a || !x) {
+		printf("\nFatal error: attempted to refer to a null vector.\n");
+		exit(EXIT_FAILURE);
+	}
 	if (!size) {
 		printf("\nFatal error: attempted to refer to a null-size vector.\n");
 		exit(EXIT_FAILURE);
@@ -74,13 +99,22 @@ bool get_scalar_product(const bool* a, const bool* x, const unsigned int size) {
 	return product;
 }
 
-bool* bin_parse(char* str, unsigned int expected_length) {
+bool* bin_parse(const char* str, const unsigned int expected_length) {
+	if (!str) {
+		printf("\nFatal error: attempted to refer to an empty string.\n");
+		exit(EXIT_FAILURE);
+	}
 	unsigned int length;
-	for (length = 0; str[length] != '\0'; length++)
+	for (length = 0; str[length] != '\0'; length++) {
 		if (str[length] != '1' && str[length] != '0') {
 			printf("Fatal error: the definition vector contains illegal characters.\n");
 			exit(EXIT_FAILURE);
 		}
+		if (length + 1 > MAX_INPUT_LENGTH) {
+			printf("Fatal error: the definition vector is too long to parse.\n");
+			exit(EXIT_FAILURE);
+		}
+	}
 	if (length - get_defvector_length(expected_length)) {
 		printf("Fatal error: the definition vector doesn't match the number of arguments.\n");
 		exit(EXIT_FAILURE);
@@ -92,6 +126,7 @@ bool* bin_parse(char* str, unsigned int expected_length) {
 }
 
 int main(int argc, char* argv[]) {
+	char* buffer = (char*)calloc(MAX_INPUT_LENGTH, sizeof(char));
 	if (argc != 3) {
 		printf("\n\n-------------------------------------------\n"
 			"Calculates Fourier coefficients for a function with N arguments defined by its values vector.\n"
@@ -102,29 +137,37 @@ int main(int argc, char* argv[]) {
 			"\nFCC 3 01101001\n"
 			"\nMake sure the definition vector matches the specified number of function arguments.\n"
 			"-------------------------------------------\n\n");
-		getchar();
-		return 0;
+		printf("Entering manual input mode.\nInput the number of arguments: ");
+		scanf_s("%999s", buffer, MAX_INPUT_LENGTH);
+		if(atoi(buffer) < 1) {
+			printf("\nFatal error: failed to parse input.\n");
+			exit(EXIT_FAILURE);
+		}
+		N = atoi(buffer);
+		printf("Input func definition vector: ");
+		scanf_s("%999s", buffer, MAX_INPUT_LENGTH);
+		funcdef = bin_parse(buffer, N);
 	}
-
-	unsigned int N = atoi(argv[1]);
-	bool* funcdef = bin_parse(argv[2], N);
-	//	bool* funcdef = (bool*)calloc(get_defvector_length(N), sizeof(bool));
-	/*	for (unsigned int i = 0; i < get_defvector_length(N); i++) {
-			funcdef[i] = inputdef[i];
-		}*/
+	else {
+		N = atoi(argv[1]);
+		funcdef = bin_parse(argv[2], N);
+	}
 	printf("\n\nGot func definition vector from input: ");
 	print_vector(funcdef, get_defvector_length(N));
 	printf("\n\n");
 
 	printf("Allocating memory...\n");
 	int* fourier_coeffs = (int*)calloc(get_defvector_length(N), sizeof(int));
+	int* walsh_hadamard_coeffs = (int*)calloc(get_defvector_length(N), sizeof(int));
 	bool* a = (bool*)calloc(N, sizeof(bool));
+	bool* b = (bool*)calloc(N, sizeof(bool));
 
-	printf("Calculating...\n");
+	printf("Calculating");
 	for (unsigned int j = 0; j < get_defvector_length(N); j++) {
 		bool* x = (bool*)calloc(N, sizeof(bool));
 		for (unsigned int i = 0; i < get_defvector_length(N); i++) {
 			fourier_coeffs[j] += funcdef[bin_to_int(x, N)] * (get_scalar_product(a, x, N) ? -1 : 1);
+			printf(".");
 			if (can_increment_vector(x, N))
 				increment_vector(x, N);
 		}
@@ -132,6 +175,20 @@ int main(int argc, char* argv[]) {
 			increment_vector(a, N);
 		free(x);
 	}
+
+	for (unsigned int k = 0; k < get_defvector_length(N); k++) {
+		bool* x = (bool*)calloc(N, sizeof(bool));
+		for (unsigned int i = 0; i < get_defvector_length(N); i++) {
+			walsh_hadamard_coeffs[k] += ((get_scalar_product(b, x, N) ^ funcdef[bin_to_int(x, N)]) ? -1 : 1);
+			printf(".");
+			if (can_increment_vector(x, N))
+				increment_vector(x, N);
+		}
+		if (can_increment_vector(b, N))
+			increment_vector(b, N);
+		free(x);
+	}
+
 	printf("\nSuccess!\n\nFourier coefficients for func are:\n\n");
 	bool* ct = (bool*)calloc(N, sizeof(bool));
 	for (unsigned int i = 0; i < get_defvector_length(N); i++) {
@@ -141,10 +198,23 @@ int main(int argc, char* argv[]) {
 		if (can_increment_vector(ct, N))
 			increment_vector(ct, N);
 	}
+	free(ct);
 
+	printf("\n\nWalsh-Hadamard coefficients for func are:\n\n");
+	ct = (bool*)calloc(N, sizeof(bool));
+	for (unsigned int i = 0; i < get_defvector_length(N); i++) {
+		printf("z(");
+		print_vector(ct, N);
+		printf(") = %d\n", walsh_hadamard_coeffs[i]);
+		if (can_increment_vector(ct, N))
+			increment_vector(ct, N);
+	}
+	printf("\nPress Enter to quit.\n\n");
+	getchar();
+	getchar();
 	free(ct);
 	free(funcdef);
 	free(a);
-
+	free(b);
 	return 0;
 }
